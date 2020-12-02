@@ -2,10 +2,12 @@ package se.idioti.example.sqlite;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
+import spark.Spark;
 
 import java.util.List;
 
 import static spark.Spark.*;
+import static spark.route.HttpMethod.get;
 
 /**
  * This demonstrates how to expose the storage through a REST API using Spark.
@@ -21,9 +23,26 @@ public class APIRunner {
 		Storage storage = new Storage();
 		storage.setup();
 
-		get("/",(req, res) -> {
+		Spark.get("/",(req, res) -> {
 			res.type("application/json");
-			return new Gson().toJson(new Gson().toJsonTree(storage.fetchUnicorns()));
+			List <Unicorn> unicorns = storage.fetchUnicorns();
+			String output = "";
+
+			for (Unicorn unicorn : unicorns) {
+				output += "\n" + "id: " + unicorn.id + "\n" +
+						"name: " + unicorn.name + "\n" +
+						"details: " + "http://unicorns.idioti.se/" + unicorn.id + "\n";
+			}
+
+			return ((output));
+
+		});
+
+		Spark.get("/:id", (req, res) -> {
+			int id = Integer.parseInt(req.params(":id"));
+			Unicorn unicorn = storage.fetchUnicorn(id);
+
+			return new Gson().toJson(new Gson().toJsonTree(unicorn.name));
 		});
 
 		post("/", (req, res) -> {
@@ -34,7 +53,7 @@ public class APIRunner {
 				return new Gson().toJson("UNICORN ADDED");
 		});
 
-		get("/:id", (request, response) -> {
+		Spark.get("/:id", (request, response) -> {
 			response.type("application/json");
 			return new Gson().toJson(new Gson().toJsonTree
 					(storage.fetchUnicorn(Integer.parseInt(":id"))));
