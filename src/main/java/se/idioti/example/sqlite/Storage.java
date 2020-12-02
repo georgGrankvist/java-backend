@@ -91,6 +91,7 @@ public class Storage {
 				unicorn.image = rs.getString("image");
 				
 				unicorns.add(unicorn);
+
 			}
 			
 			statement.close();
